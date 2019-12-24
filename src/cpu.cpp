@@ -1,9 +1,8 @@
 #include <cstring>
-#include <iostream>
-#include <sstream>
 #include <string>
 
 #include "cpu.h"
+#include "loader.h"
 #include "tools.h"
 
 using namespace std;
@@ -17,10 +16,41 @@ CPU::~CPU() {
     delete[] m;
 }
 
+//
+// Retrieves the instruction from memory based on the current PC
+//
 void CPU::fetch(void) {
+    // Each instruction in chip8 is in big-endian.  x86 memory is little endian, so the program
+    // must swap the MSB and LSB bytes (and turn it into little endian)
+    hiByte = *(m+this->pc);
+    instruction =  hiByte << 8;  // store the first byte into instruction MSB
+    loByte = *(m+this->pc + 1);
+    instruction |= loByte;  // store the second byte into instruction LSB
+    log(DEBUG, "Instruction: 0x%04x", instruction);
 }
 
+//
+// Takes the instruction and breaks it up into constiutent parts.  Not all parts are meaningful
+// for every instruction.
+//
 void CPU::decode(void) {
+
+    // the left 4 bits of the instruction using bitmask
+    lNibble = (instruction & 0xF000) >> 12;
+
+    // the right 4 bits of the instruction using bitmask
+    rNibble = instruction & 0x000F;
+
+    // instruction address
+    address = instruction & 0x0FFF;
+
+    // the x register index
+    x = (instruction & 0x0F00) >> 8;
+
+    // the y register index
+    y = (instruction & 0x00F0) >> 4;
+
+    log(DEBUG, "lNibble: %d, rNibble: %d, address: %d, x: %d, y: %d", lNibble, rNibble, address, x, y);
 }
 
 void CPU::execute(void) {
@@ -30,32 +60,9 @@ void CPU::execute(void) {
 // Loads a c8 rom image into the CPU memory.
 //
 void CPU::load(string const &filename) {
-    stringstream errmsg;
-    string full_filename;
-
-    // check if file exists
-    char *rp = realpath(filename.c_str(), NULL);
-    if (rp == NULL) {
-        errmsg.clear();
-        errmsg << "Invalid input rome file: " << filename;
-        throw runtime_error(errmsg.str());
-    }
-
-    full_filename = rp;
-    free(rp);
-
-    if (!exists(full_filename)) {
-        errmsg.clear();
-        errmsg << "File " << full_filename << " does not exist";
-        throw runtime_error(errmsg.str());
-    }
-
-    log(INFO, "Loading input file: %s", full_filename.c_str());
-
-    // open file for binary, check size
-
-    // if size can fit in memory, read the file and load it
-
+    Loader loader(filename);
+    log(DEBUG, "loaded %d bytes", loader.size());
+    memcpy(m+this->pc, loader.buffer(), loader.size());
 }
 
 //
@@ -74,11 +81,20 @@ void CPU::reset() {
 }
 
 //
+// Infinite run loop for the CPU.
+//
+void CPU::run() {
+    while (!halting) {
+        step();
+    }
+}
+
+//
 // Performs the fetch, decode, execute for the current instruction and then increments
 // the program counter to the next instruction
 //
 void CPU::step(void) {
-    log(INFO, "Step to next instruction");
+    log(DEBUG, "Step to next instruction");
 
     fetch();
     decode();
