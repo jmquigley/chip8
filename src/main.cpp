@@ -6,6 +6,7 @@
 #include <string>
 
 #include "cpu.h"
+#include "loader.h"
 #include "tools.h"
 
 using namespace std;
@@ -21,34 +22,32 @@ int main(int argc, char **argv) {
             throw runtime_error(errmsg.str());
         }
 
-        bool quit = false;
+        Display display;
+        Loader loader(argv[1]);
+        CPU cpu(display, loader);
+
+        bool done = false;
         SDL_Event event;
-        SDL_Init(SDL_INIT_VIDEO);
-        SDL_Window *window = SDL_CreateWindow("chip8",
-                                              SDL_WINDOWPOS_UNDEFINED,
-                                              SDL_WINDOWPOS_UNDEFINED,
-                                              640, 320, 0);
-
-        CPU cpu;
-        cpu.load(argv[1]);
 
         cpu.step();
         cpu.step();
         cpu.step();
         cpu.step();
 
-        while (!quit) {
+        while (!done) {
             SDL_PollEvent(&event);
 
             switch (event.type) {
                 case SDL_QUIT:
-                    quit = true;
+                    done = true;
                     break;
             }
-        }
 
-        SDL_DestroyWindow(window);
-        SDL_Quit();
+            display.pixel(0, 0);
+            display.pixel(63, 31);
+
+            display.update();
+        }
 
     } catch(exception &e) {
         log(ERROR, "%s", e.what());

@@ -7,9 +7,15 @@
 
 using namespace std;
 
-CPU::CPU() {
+CPU::CPU(Display &display, Loader &loader) {
     m = new unsigned char [CPU::MemSize];
+    this->display = &display;
+    this->loader = &loader;
+
     reset();
+
+    // Load the program into the CPU memory
+    memcpy(m+this->pc, loader.buffer(), loader.size());
 }
 
 CPU::~CPU() {
@@ -54,15 +60,7 @@ void CPU::decode(void) {
 }
 
 void CPU::execute(void) {
-}
-
-//
-// Loads a c8 rom image into the CPU memory.
-//
-void CPU::load(string const &filename) {
-    Loader loader(filename);
-    log(DEBUG, "loaded %d bytes", loader.size());
-    memcpy(m+this->pc, loader.buffer(), loader.size());
+    pc += 2;
 }
 
 //
@@ -77,7 +75,6 @@ void CPU::reset() {
     this->pc = 0x200;
     memset(stack, 0, sizeof(stack[0]) * CPU::StackSize);
     this->sp = 0;
-    memset(vram, 0, sizeof(vram[0][0]) * VMemHeight * VMemWidth);
 }
 
 //
@@ -99,6 +96,4 @@ void CPU::step(void) {
     fetch();
     decode();
     execute();
-
-    pc += 2;
 }

@@ -22,7 +22,9 @@ using namespace std;
 #define TM_BUFSIZE        50
 #endif
 
+unsigned int color(unsigned int r, unsigned int g, unsigned int b);
 bool exists(string const &filename);
 void log(unsigned int level, const char *msg, ...);
+void memset32(void *ptr, int value, int size);
 
 #endif

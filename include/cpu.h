@@ -3,6 +3,9 @@
 
 #include <string>
 
+#include "display.h"
+#include "loader.h"
+
 using namespace std;
 
 class CPU {
@@ -11,13 +14,10 @@ public:
     static const int MemSize = 4096;
     static const int StackSize = 16;
     static const int TotalRegisters = 16;
-    static const int VMemHeight = 32;
-    static const int VMemWidth = 64;
 
-    CPU();
+    CPU(Display &display, Loader &loader);
     ~CPU();
 
-    void load(string const &filename);
     void reset(void);
     void run(void);
     void step(void);
@@ -26,6 +26,9 @@ private:
 
     // address contained within the current instruction
     unsigned short int address;
+
+    // reference to the screen where pixels will be written
+    Display *display = NULL;
 
     // flag to stop the main loop
     bool halting = false;
@@ -38,6 +41,8 @@ private:
 
     // The left 4 bits of the instruction
     unsigned char lNibble;
+
+    Loader *loader = NULL;
 
     // The LSB of the instruction
     unsigned char loByte;
@@ -65,9 +70,6 @@ private:
 
     // special delay register
     unsigned char vDelay;
-
-    // Video ram buffer 2D array
-    unsigned char vram[VMemWidth][VMemHeight];
 
     // special sound register
     unsigned char vSound;
