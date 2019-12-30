@@ -2,6 +2,7 @@
 #define CPU_H_
 
 #include <string>
+#include <time.h>
 
 #include "display.h"
 #include "loader.h"
@@ -15,11 +16,14 @@ public:
     static const int StackSize = 16;
     static const int TotalRegisters = 16;
 
+    // The delay timer is 60Hz.  Each cycle the delay register is decremented.
+    // ceil((1 sec / 60 cycles) * (1000ms / 1 sec)) = 17 ms/cycle
+    static const int TimerTick = 17;
+
     CPU(Display &display, Loader &loader);
     ~CPU();
 
     void reset(void);
-    void run(void);
     void step(void);
 
 private:
@@ -29,9 +33,6 @@ private:
 
     // reference to the screen where pixels will be written
     Display *display = NULL;
-
-    // flag to stop the main loop
-    bool halting = false;
 
     // The MSB of the instruction
     unsigned char hiByte;
@@ -62,6 +63,9 @@ private:
     // call return stack
     unsigned short int stack[StackSize];
 
+    // The timer structure for computing elapsed time between ticks
+    struct timespec timer;
+
     // 16 general purpose register, v0 - vF (v0-v15)
     unsigned char v[TotalRegisters];
 
@@ -83,6 +87,7 @@ private:
     void decode(void);
     void execute(void);
     void fetch(void);
+    void timerTick(void);
 };
 
 #endif

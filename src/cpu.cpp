@@ -1,4 +1,5 @@
 #include <cstring>
+#include <stdlib.h>
 #include <string>
 
 #include "cpu.h"
@@ -67,23 +68,22 @@ void CPU::execute(void) {
 // Resets the internals for the CPU.
 //
 void CPU::reset() {
+    clock_gettime(CLOCK_MONOTONIC_RAW, &timer);
     memset(m, 0, sizeof(unsigned char) * CPU::MemSize);
     memset(v, 0, sizeof(v[0]) * CPU::TotalRegisters);
     this->vi = 0;
-    this->vDelay = 0;
+    this->vDelay = 0;  // TODO: set this to 0, temp for testing at 60
     this->vSound = 0;
     this->pc = 0x200;
     memset(stack, 0, sizeof(stack[0]) * CPU::StackSize);
     this->sp = 0;
-}
-
-//
-// Infinite run loop for the CPU.
-//
-void CPU::run() {
-    while (!halting) {
-        step();
-    }
+    this->address = 0;
+    this->hiByte = 0;
+    this->loByte = 0;
+    this->rNibble = 0;
+    this->lNibble = 0;
+    this->x = 0;
+    this->y = 0;
 }
 
 //
@@ -91,9 +91,44 @@ void CPU::run() {
 // the program counter to the next instruction
 //
 void CPU::step(void) {
-    log(DEBUG, "Step to next instruction");
+    timerTick();
 
     fetch();
     decode();
     execute();
+}
+
+//
+// Called each step through the code to compute the elapsed time between calls.  It uses
+// this to decrement the delay register (only if it's greater than 0).  It uses the constant
+// 17 ms / tick to determine each tick.
+//
+void CPU::timerTick() {
+    div_t decrementDelay;
+    unsigned long int elapsed;
+    struct timespec newTimer;
+
+    clock_gettime(CLOCK_MONOTONIC_RAW, &newTimer);
+
+    if (vDelay > 0) {
+
+        // The number of milliseconds between calls to this routine
+        // clock gives nanosecond difference, so convert to milliseconds
+        elapsed = 1000.0 * (newTimer.tv_sec - timer.tv_sec) +
+            (double)(newTimer.tv_nsec - timer.tv_nsec) / 1.0e+6;
+
+        if (elapsed > TimerTick) {
+            decrementDelay = div(elapsed, TimerTick);\
+
+            if (decrementDelay.quot > vDelay) {
+                vDelay = 0;
+            } else {
+                vDelay -= decrementDelay.quot;
+            }
+
+            timer = newTimer;
+        }
+    } else {
+        timer = newTimer;
+    }
 }

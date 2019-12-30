@@ -38,6 +38,12 @@ bool exists(string const &filename) {
 // - INFO
 //
 void log(unsigned int level, const char *msg, ...) {
+
+    // set DEBUG env variable to "true" to print debugging messages
+    if (level == DEBUG && getenv("DEBUG") == NULL) {
+        return;
+    }
+
     va_list args;
     va_start(args, msg);
 

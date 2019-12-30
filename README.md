@@ -8,6 +8,7 @@ The program was devloped under Debian 10 using the following application require
 - gcc 8.3.x
 - [Simple DirectMedia Layer 2](https://www.libsdl.org/)
 - [cppcheck](https://sourceforge.net/p/cppcheck/wiki/Home/)
+- [valgrind](https://valgrind.org/)
 
 This code is incomplete and a WIP (don't use it).
 
@@ -22,13 +23,19 @@ $ ./build.sh
 This will generate the Makefile using cmake and execute the build process.  If successful, then an executable named `chip8` will be available in `./build/chip8`.  The program is executed directly using:
 
 ```
-$ ./build/chip8 {rom file}
+$ ./build/app {rom file}
 ```
 
 e.g.
 
 ```
-$ ./build/chip8 roms/INVADERS
+$ ./build/app roms/INVADERS
+```
+
+The project also contains a BASH wrapper at the root of the script to perform the execution:
+
+```
+$ ./chip8 roms/INVADERS
 ```
 
 To remove all intermediate files use:

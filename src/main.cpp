@@ -29,11 +29,6 @@ int main(int argc, char **argv) {
         bool done = false;
         SDL_Event event;
 
-        cpu.step();
-        cpu.step();
-        cpu.step();
-        cpu.step();
-
         while (!done) {
             SDL_PollEvent(&event);
 
@@ -43,10 +38,14 @@ int main(int argc, char **argv) {
                     break;
             }
 
-            display.pixel(0, 0);
-            display.pixel(63, 31);
 
+            // display.pixel(0, 0);
+            // display.pixel(63, 31);
+
+            display.pixel(rand() % 64, rand() % 32);
             display.update();
+
+            cpu.step();
         }
 
     } catch(exception &e) {
