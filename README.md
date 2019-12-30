@@ -38,13 +38,15 @@ The project also contains a BASH wrapper at the root of the script to perform th
 $ ./chip8 roms/INVADERS
 ```
 
-To remove all intermediate files use:
+The build uses an "out of source" method for building its objects.  To remove all intermediate files use:
 
 ```
 $ ./clean.sh
 ```
 
-This will remove the `build` directory and executable files.
+This will remove the `build` directory and executable files.  One could also just remove the `build` directory directly.
+
+To see debugging messages set the `DEBUG` environment variable to true and rebuild the project.  This will be slower than the release type build becuase the exe will contain debug symbols and log messages will be printed to standard out.
 
 
 ## References
