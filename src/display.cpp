@@ -39,8 +39,6 @@ Display::Display(unsigned int background, unsigned int foreground, unsigned int 
     this->foreground = foreground;
     this->scale = scale >= 1 ? scale : 1;
 
-    SDL_Init(SDL_INIT_VIDEO);
-
     window = SDL_CreateWindow("chip8",
                               SDL_WINDOWPOS_UNDEFINED,
                               SDL_WINDOWPOS_UNDEFINED,

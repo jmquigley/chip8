@@ -13,6 +13,7 @@ class CPU {
 
 public:
     static const int MemSize = 4096;
+    static const int NoKey = -1;
     static const int StackSize = 16;
     static const int TotalRegisters = 16;
 
@@ -24,6 +25,8 @@ public:
     ~CPU();
 
     void reset(void);
+    void resetKey(void);
+    void setKey(int keypress);
     void step(void);
 
 private:
@@ -37,8 +40,31 @@ private:
     // The MSB of the instruction
     unsigned char hiByte;
 
+    // Built in fonts for 0-9, A-F saved in the first 80 bytes of RAM
+    unsigned char fonts[16][5] = {
+         {0xF0, 0x90, 0x90, 0x90, 0xF0}, // 0
+         {0x20, 0x60, 0x20, 0x20, 0x70}, // 1
+         {0xF0, 0x10, 0xF0, 0x80, 0xF0}, // 2
+         {0xF0, 0x10, 0xF0, 0x10, 0xF0}, // 3
+         {0x90, 0x90, 0xF0, 0x10, 0x10}, // 4
+         {0xF0, 0x80, 0xF0, 0x10, 0xF0}, // 5
+         {0xF0, 0x80, 0xF0, 0x90, 0xF0}, // 6
+         {0xF0, 0x10, 0x20, 0x40, 0x40}, // 7
+         {0xF0, 0x90, 0xF0, 0x90, 0xF0}, // 8
+         {0xF0, 0x90, 0xF0, 0x10, 0xF0}, // 9
+         {0xF0, 0x90, 0xF0, 0x90, 0x90}, // A
+         {0xE0, 0x90, 0xE0, 0x90, 0xE0}, // B
+         {0xF0, 0x80, 0x80, 0x80, 0xF0}, // C
+         {0xE0, 0x90, 0x90, 0x90, 0xE0}, // D
+         {0xF0, 0x80, 0xF0, 0x80, 0xF0}, // E
+         {0xF0, 0x80, 0xF0, 0x80, 0x80}  // F
+    };
+
     // The current instruction after a fetch operation
     unsigned short int instruction;
+
+    // The SDL keypress from the main loop.  -1 means no keypress
+    int keypress = NoKey;
 
     // The left 4 bits of the instruction
     unsigned char lNibble;
@@ -58,7 +84,7 @@ private:
     unsigned char rNibble;
 
     // stack pointer index
-    unsigned char sp;
+    short int sp;
 
     // call return stack
     unsigned short int stack[StackSize];
@@ -87,7 +113,18 @@ private:
     void decode(void);
     void execute(void);
     void fetch(void);
+    void push(unsigned int);
+    unsigned int pop();
     void timerTick(void);
+
+    void opCall();
+    void opClear();
+    void opJump();
+    void opReturn();
+    void opSkipEqual();
+    void opSkipNotEqual();
+    void opSysCall();
+
 };
 
 #endif
